@@ -69,4 +69,29 @@ with mlflow.start_run():
        },
     )
 
+# COMMAND ----------
 
+from mlflow.deployments import get_deploy_client
+
+
+client = get_deploy_client("databricks")
+
+
+endpoint = client.create_endpoint(
+    name=uc_model_name,
+    config={
+        "served_entities": [{
+            "entity_name": f"{my_uc_catalog}.{my_uc_schema}.{uc_model_name}",
+            "entity_version": model_info.registered_model_version,
+             "min_provisioned_throughput": 0,
+             "max_provisioned_throughput": 9500,
+            "scale_to_zero_enabled": True
+        }],
+        "traffic_config": {
+            "routes": [{
+                "served_model_name": f"{uc_model_name}-{model_info.registered_model_version}",
+                "traffic_percentage": 100
+            }]
+        }
+    }
+)
